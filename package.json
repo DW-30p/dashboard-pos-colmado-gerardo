@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Dashboard POS para Colmado Gerardo con base de datos PostgreSQL en Neon",
   "main": "index.html",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'Static site ready'",
