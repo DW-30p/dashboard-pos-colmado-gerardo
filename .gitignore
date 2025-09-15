@@ -3,4 +3,3 @@ node_modules/
 .env.local
 .env.example
 .vercel
-vercel.json
