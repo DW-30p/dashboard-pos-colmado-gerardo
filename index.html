@@ -1027,17 +1027,30 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
-            // Cargar datos iniciales
+            console.log('DOM loaded, initializing dashboard...');
+            
+            // Cargar datos iniciales del dashboard
             loadDashboardData();
             
             // Event listeners para selectores de período
             document.getElementById('history-period')?.addEventListener('change', function() {
+                console.log('History period changed to:', this.value);
                 loadSalesHistory();
             });
             
             document.getElementById('reports-period')?.addEventListener('change', function() {
+                console.log('Reports period changed to:', this.value);
                 loadReportsData();
             });
+
+            // Auto-refresh cada 60 segundos
+            setInterval(() => {
+                const activeContent = document.querySelector('.content.active');
+                if (activeContent && activeContent.id === 'dashboard') {
+                    console.log('Auto-refreshing dashboard data...');
+                    loadDashboardData();
+                }
+            }, 60000);
         });
 
         // Función para refrescar datos automáticamente
