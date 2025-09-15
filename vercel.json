@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "env": {
+    "DATABASE_URL": "@database_url"
+  },
+  "build": {
+    "env": {
+      "DATABASE_URL": "@database_url"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

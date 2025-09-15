@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard POS - Colmado Gerardo</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --purple-color: #8b5cf6;
+            --orange-color: #f97316;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-600);
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Navigation */
+        .nav {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            background: var(--gray-100);
+            color: var(--gray-700);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--gray-200);
+        }
+
+        .nav-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Content Areas */
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success-color);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .stat-card.purple {
+            border-left-color: var(--purple-color);
+        }
+
+        .stat-card.orange {
+            border-left-color: var(--orange-color);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-title {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .stat-icon.success { background: var(--success-color); }
+        .stat-icon.warning { background: var(--warning-color); }
+        .stat-icon.purple { background: var(--purple-color); }
+        .stat-icon.orange { background: var(--orange-color); }
+        .stat-icon.primary { background: var(--primary-color); }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-description {
+            color: var(--gray-500);
+            font-size: 0.85rem;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.positive {
+            color: var(--success-color);
+        }
+
+        .stat-change.negative {
+            color: var(--danger-color);
+        }
+
+        /* Charts */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-header {
+            margin-bottom: 1rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .chart-subtitle {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+
+        .chart {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gray-50);
+            border-radius: 8px;
+            color: var(--gray-500);
+        }
+
+        /* Tables */
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .table-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        th {
+            background: var(--gray-50);
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background: var(--gray-50);
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Period Selector */
+        .period-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .period-label {
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+
+        .period-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            background: white;
+            color: var(--gray-700);
+            font-size: 0.9rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--gray-500);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Financial Analysis */
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .financial-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .financial-card.income {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+
+        .financial-card.cost {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        }
+
+        .financial-card.profit {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-buttons {
+                justify-content: center;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .financial-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🏪 Dashboard</h1>
+                </div>
+                <div class="user-info">
+                    <div class="avatar">A</div>
+                    <div>
+                        <div style="font-weight: 600;">Admin</div>
+                        <div style="font-size: 0.8rem;">Administrador</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Navigation -->
+        <div class="nav">
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showContent('dashboard')">Dashboard</button>
+                <button class="nav-btn" onclick="showContent('sales-history')">Historial de Ventas</button>
+                <button class="nav-btn" onclick="showContent('reports')">Reportes</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboard" class="content active">
+            <!-- Main Stats -->
+            <div class="dashboard-grid">
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">💰 Ingresos del Período</div>
+                            <div class="stat-value" id="period-income">RD$0</div>
+                            <div class="stat-description">este mes • <span id="period-sales-count">0</span> ventas</div>
+                        </div>
+                        <div class="stat-icon success">$</div>
+                    </div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">Ventas Semanales</div>
+                            <div class="stat-value" id="weekly-sales">RD$0</div>
+                            <div class="stat-change positive">📈 0.0% crecimiento vs semana anterior</div>
+                        </div>
+                        <div class="stat-icon success">📊</div>
+                    </div>
+                </div>
+
+                <div class="stat-card purple">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">Ventas Mensuales</div>
+                            <div class="stat-value" id="monthly-sales">RD$0</div>
+                            <div class="stat-change">📊 Total vs mes anterior</div>
+                        </div>
+                        <div class="stat-icon purple">📊</div>
+                    </div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">💰 Balance de Caja</div>
+                            <div class="stat-value" id="cash-balance">RD$0</div>
+                            <div class="stat-description">📊 Total efectivo disponible</div>
+                        </div>
+                        <div class="stat-icon success">💳</div>
+                    </div>
+                </div>
+
+                <div class="stat-card purple">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">Total de Ventas</div>
+                            <div class="stat-value" id="total-sales-count">0</div>
+                            <div class="stat-description">📊 Total este mes</div>
+                        </div>
+                        <div class="stat-icon purple">📊</div>
+                    </div>
+                </div>
+
+                <div class="stat-card orange">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">Promedio por Venta</div>
+                            <div class="stat-value" id="avg-sale">RD$0</div>
+                            <div class="stat-description">📊 Total ticket promedio</div>
+                        </div>
+                        <div class="stat-icon orange">📊</div>
+                    </div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">Valor Inventario</div>
+                            <div class="stat-value" id="inventory-value">RD$0</div>
+                            <div class="stat-description">📊 Total <span id="low-stock-count">0</span> productos con stock bajo</div>
+                        </div>
+                        <div class="stat-icon warning">📦</div>
+                    </div>
+                </div>
+
+                <div class="stat-card primary">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">Total de Clientes</div>
+                            <div class="stat-value" id="total-customers">0</div>
+                            <div class="stat-description">Registrados</div>
+                        </div>
+                        <div class="stat-icon primary">👥</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Ventas por Método de Pago</div>
+                        <div class="chart-subtitle">En este mes</div>
+                    </div>
+                    <div class="chart" id="payment-methods-chart">
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <div>No hay datos para este período</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">Ventas por Día de la Semana</div>
+                        <div class="chart-subtitle">En este mes</div>
+                    </div>
+                    <div class="chart" id="daily-sales-chart">
+                        <div class="empty-state">
+                            <div class="empty-icon">📈</div>
+                            <div>No hay datos para este período</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Section -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">Ventas Recientes</div>
+                    </div>
+                    <div class="empty-state">
+                        <div class="empty-icon">🛒</div>
+                        <div>No hay ventas recientes</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">Productos Populares</div>
+                    </div>
+                    <div class="empty-state">
+                        <div class="empty-icon">⭐</div>
+                        <div>No hay datos de productos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales History Content -->
+        <div id="sales-history" class="content">
+            <div class="period-selector">
+                <span class="period-label">Período:</span>
+                <select class="period-select" id="history-period">
+                    <option value="today">Hoy</option>
+                    <option value="week">Esta Semana</option>
+                    <option value="month" selected>Este Mes</option>
+                    <option value="year">Este Año</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">Historial de Ventas</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Total</th>
+                            <th>Método de Pago</th>
+                            <th>NCF</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sales-history-tbody">
+                        <tr>
+                            <td colspan="7" class="empty-state">
+                                <div>No hay ventas registradas para este período</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reports Content -->
+        <div id="reports" class="content">
+            <div class="period-selector">
+                <span class="period-label">Período:</span>
+                <select class="period-select" id="reports-period">
+                    <option value="month" selected>Este Mes</option>
+                    <option value="quarter">Este Trimestre</option>
+                    <option value="year">Este Año</option>
+                </select>
+            </div>
+
+            <!-- Reports Header -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <div class="stat-title">📊 Ventas y Ganancias</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">📈 Productos Populares</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">📋 Reportes por Períodos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">💰 Formato 607 DGII</div>
+                </div>
+            </div>
+
+            <!-- Sales and Earnings -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <div class="stat-title">Ventas Diarias</div>
+                    <div class="stat-value" id="reports-daily-sales">RD$0.00</div>
+                    <div class="stat-description">0.0% vs. ayer</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Ventas Semanales</div>
+                    <div class="stat-value" id="reports-weekly-sales">RD$200.00</div>
+                    <div class="stat-description">0.0% vs. semana pasada</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">🎯 Ventas del Período</div>
+                    <div class="stat-value" id="reports-period-sales">RD$200.00</div>
+                    <div class="stat-description">Margen de ganancia: 50.0%<br>En este mes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Productos Vendidos</div>
+                    <div class="stat-value" id="reports-products-sold">1</div>
+                    <div class="stat-description">En este mes</div>
+                </div>
+            </div>
+
+            <!-- Financial Analysis -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <div class="chart-title">📊 Análisis Financiero del Período</div>
+                    <div class="chart-subtitle">Visualización de ingresos, costos y ganancias - este mes</div>
+                </div>
+            </div>
+
+            <div class="financial-grid">
+                <div class="financial-card income">
+                    <div class="stat-title">💰 Ingresos del Período</div>
+                    <div class="stat-description">En este mes</div>
+                    <div class="stat-value" id="reports-income">RD$200.00</div>
+                    <div class="stat-description">Total de 1 ventas</div>
+                </div>
+
+                <div class="financial-card cost">
+                    <div class="stat-title">🏷️ Costos del Período</div>
+                    <div class="stat-description">En este mes</div>
+                    <div class="stat-value" id="reports-costs">RD$100.00</div>
+                    <div class="stat-description">50.0% de los ingresos</div>
+                </div>
+
+                <div class="financial-card profit">
+                    <div class="stat-title">💚 Ganancia del Período</div>
+                    <div class="stat-description">En este mes</div>
+                    <div class="stat-value" id="reports-profit">RD$100.00</div>
+                    <div class="stat-description">Margen real: 50.0%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la base de datos (Neon PostgreSQL)
+        const DB_CONFIG = {
+            // Aquí deberás agregar tu string de conexión de Neon
+            connectionString: 'postgresql://username:password@ep-xxx.us-east-1.postgres.vercel-storage.com/dbname',
+            // Para desarrollo local o con API
+            apiEndpoint: '/api' // Endpoint para tu API
+        };
+
+        // Estado global de la aplicación
+        let appState = {
+            currentPeriod: 'month',
+            salesData: [],
+            productsData: [],
+            customersData: [],
+            dashboardStats: {
+                periodIncome: 0,
+                weeklySales: 0,
+                monthlySales: 0,
+                cashBalance: 0,
+                totalSales: 0,
+                avgSale: 0,
+                inventoryValue: 0,
+                totalCustomers: 0,
+                lowStockCount: 0
+            }
+        };
+
+        // Funciones de navegación
+        function showContent(contentId) {
+            // Ocultar todo el contenido
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remover clase active de todos los botones
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar contenido seleccionado
+            document.getElementById(contentId).classList.add('active');
+            
+            // Activar botón correspondiente
+            event.target.classList.add('active');
+            
+            // Cargar datos específicos según la sección
+            loadSectionData(contentId);
+        }
+
+        // Cargar datos según la sección
+        async function loadSectionData(section) {
+            switch(section) {
+                case 'dashboard':
+                    await loadDashboardData();
+                    break;
+                case 'sales-history':
+                    await loadSalesHistory();
+                    break;
+                case 'reports':
+                    await loadReportsData();
+                    break;
+            }
+        }
+
+        // Simular datos para demostración (reemplazar con llamadas reales a la API)
+        async function loadDashboardData() {
+            // Datos simulados basados en tu BD
+            const mockData = {
+                periodIncome: 0,
+                weeklySales: 0,
+                monthlySales: 0,
+                cashBalance: 0,
+                totalSales: 0,
+                avgSale: 0,
+                inventoryValue: 0,
+                totalCustomers: 0,
+                lowStockCount: 0
+            };
+
+            updateDashboardStats(mockData);
+        }
+
+        async function loadSalesHistory() {
+            // En una implementación real, aquí harías una consulta a tu BD
+            const mockSales = [];
+            updateSalesHistoryTable(mockSales);
+        }
+
+        async function loadReportsData() {
+            // Datos simulados para reportes
+            const mockReports = {
+                dailySales: 0,
+                weeklySales: 200,
+                periodSales: 200,
+                productsSold: 1,
+                income: 200,
+                costs: 100,
+                profit: 100
+            };
+
+            updateReportsData(mockReports);
+        }
+
+        // Actualizar estadísticas del dashboard
+        function updateDashboardStats(data) {
+            document.getElementById('period-income').textContent = formatCurrency(data.periodIncome);
+            document.getElementById('weekly-sales').textContent = formatCurrency(data.weeklySales);
+            document.getElementById('monthly-sales').textContent = formatCurrency(data.monthlySales);
+            document.getElementById('cash-balance').textContent = formatCurrency(data.cashBalance);
+            document.getElementById('total-sales-count').textContent = data.totalSales;
+            document.getElementById('avg-sale').textContent = formatCurrency(data.avgSale);
+            document.getElementById('inventory-value').textContent = formatCurrency(data.inventoryValue);
+            document.getElementById('total-customers').textContent = data.totalCustomers;
+            document.getElementById('low-stock-count').textContent = data.lowStockCount;
+            document.getElementById('period-sales-count').textContent = data.totalSales;
+        }
+
+        // Actualizar tabla de historial de ventas
+        function updateSalesHistoryTable(sales) {
+            const tbody = document.getElementById('sales-history-tbody');
+            
+            if (sales.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div>No hay ventas registradas para este período</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = sales.map(sale => `
+                <tr>
+                    <td>#${sale.id}</td>
+                    <td>${formatDate(sale.date)}</td>
+                    <td>${sale.customer_name || 'Cliente General'}</td>
+                    <td>${formatCurrency(sale.total)}</td>
+                    <td><span class="status-badge status-${sale.payment_method}">${sale.payment_method}</span></td>
+                    <td>${sale.ncf || 'N/A'}</td>
+                    <td><span class="status-badge status-completed">Completada</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Actualizar datos de reportes
+        function updateReportsData(data) {
+            document.getElementById('reports-daily-sales').textContent = formatCurrency(data.dailySales);
+            document.getElementById('reports-weekly-sales').textContent = formatCurrency(data.weeklySales);
+            document.getElementById('reports-period-sales').textContent = formatCurrency(data.periodSales);
+            document.getElementById('reports-products-sold').textContent = data.productsSold;
+            document.getElementById('reports-income').textContent = formatCurrency(data.income);
+            document.getElementById('reports-costs').textContent = formatCurrency(data.costs);
+            document.getElementById('reports-profit').textContent = formatCurrency(data.profit);
+        }
+
+        // Funciones de utilidad
+        function formatCurrency(amount) {
+            return `RD${parseFloat(amount).toLocaleString('es-DO', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-DO', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // API Functions (Para conectar con tu base de datos en Neon)
+        class PosAPI {
+            constructor() {
+                this.baseURL = '/api'; // Cambiar por tu endpoint de API
+            }
+
+            // Obtener estadísticas del dashboard
+            async getDashboardStats() {
+                try {
+                    // Ejemplo de consultas SQL que necesitarías ejecutar
+                    const queries = {
+                        periodIncome: `
+                            SELECT COALESCE(SUM(total), 0) as income, COUNT(*) as sales_count
+                            FROM sales 
+                            WHERE date >= date_trunc('month', CURRENT_DATE)
+                        `,
+                        weeklySales: `
+                            SELECT COALESCE(SUM(total), 0) as weekly_sales
+                            FROM sales 
+                            WHERE date >= date_trunc('week', CURRENT_DATE)
+                        `,
+                        monthlySales: `
+                            SELECT COALESCE(SUM(total), 0) as monthly_sales
+                            FROM sales 
+                            WHERE date >= date_trunc('month', CURRENT_DATE)
+                        `,
+                        cashBalance: `
+                            SELECT current_balance 
+                            FROM cash_register 
+                            WHERE id = 1
+                        `,
+                        totalCustomers: `
+                            SELECT COUNT(*) as total_customers 
+                            FROM customers
+                        `,
+                        inventoryValue: `
+                            SELECT COALESCE(SUM(price * stock), 0) as inventory_value,
+                                   COUNT(CASE WHEN stock <= min_stock THEN 1 END) as low_stock_count
+                            FROM products 
+                            WHERE available = true
+                        `
+                    };
+
+                    // En una implementación real, harías fetch a tu API
+                    // const response = await fetch(`${this.baseURL}/dashboard-stats`);
+                    // return await response.json();
+
+                    // Por ahora retornamos datos mock
+                    return {
+                        periodIncome: 0,
+                        weeklySales: 0,
+                        monthlySales: 0,
+                        cashBalance: 0,
+                        totalSales: 0,
+                        avgSale: 0,
+                        inventoryValue: 0,
+                        totalCustomers: 0,
+                        lowStockCount: 0,
+                        salesCount: 0
+                    };
+                } catch (error) {
+                    console.error('Error fetching dashboard stats:', error);
+                    return null;
+                }
+            }
+
+            // Obtener historial de ventas
+            async getSalesHistory(period = 'month') {
+                try {
+                    const response = await fetch(`${this.baseURL}/sales-history?period=${period}&limit=100`);
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error desconocido');
+                    }
+                    
+                    return result.data.sales || [];
+                } catch (error) {
+                    console.error('Error fetching sales history:', error);
+                    return [];
+                }
+            }
+
+            // Obtener datos de reportes
+            async getReportsData(period = 'month') {
+                try {
+                    const response = await fetch(`${this.baseURL}/reports?period=${period}&report_type=all`);
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error desconocido');
+                    }
+                    
+                    const data = result.data;
+                    
+                    return {
+                        dailySales: 0, // Calcular desde daily_sales
+                        weeklySales: data.financial_summary?.total_revenue || 0,
+                        periodSales: data.financial_summary?.total_revenue || 0,
+                        productsSold: data.top_products?.length || 0,
+                        income: data.financial_summary?.total_revenue || 0,
+                        costs: data.financial_summary?.total_costs || 0,
+                        profit: data.financial_summary?.total_profit || 0,
+                        topProducts: data.top_products || []
+                    };
+                } catch (error) {
+                    console.error('Error fetching reports data:', error);
+                    return {
+                        dailySales: 0,
+                        weeklySales: 0,
+                        periodSales: 0,
+                        productsSold: 0,
+                        income: 0,
+                        costs: 0,
+                        profit: 0,
+                        topProducts: []
+                    };
+                }
+            }
+
+            // Probar conexión a la base de datos
+            async testConnection() {
+                try {
+                    const response = await fetch(`${this.baseURL}/test-connection`);
+                    const result = await response.json();
+                    return result;
+                } catch (error) {
+                    console.error('Error testing connection:', error);
+                    return { success: false, error: error.message };
+                }
+            }
+        }
+
+        // Inicializar API
+        const posAPI = new PosAPI();
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar datos iniciales
+            loadDashboardData();
+            
+            // Event listeners para selectores de período
+            document.getElementById('history-period')?.addEventListener('change', function() {
+                loadSalesHistory();
+            });
+            
+            document.getElementById('reports-period')?.addEventListener('change', function() {
+                loadReportsData();
+            });
+        });
+
+        // Función para refrescar datos automáticamente
+        function startAutoRefresh() {
+            setInterval(() => {
+                const activeContent = document.querySelector('.content.active');
+                if (activeContent) {
+                    loadSectionData(activeContent.id);
+                }
+            }, 30000); // Refrescar cada 30 segundos
+        }
+
+        // Cargar datos reales desde la API
+        async function loadDashboardData() {
+            try {
+                showLoading('dashboard');
+                const stats = await posAPI.getDashboardStats();
+                
+                if (stats) {
+                    // Calcular promedio de venta
+                    stats.avgSale = stats.salesCount > 0 ? stats.periodIncome / stats.salesCount : 0;
+                    stats.totalSales = stats.salesCount;
+                    
+                    updateDashboardStats(stats);
+                }
+                
+                hideLoading('dashboard');
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                hideLoading('dashboard');
+            }
+        }
+
+        async function loadSalesHistory() {
+            try {
+                const period = document.getElementById('history-period').value;
+                showLoading('sales-history');
+                
+                const sales = await posAPI.getSalesHistory(period);
+                updateSalesHistoryTable(sales);
+                
+                hideLoading('sales-history');
+            } catch (error) {
+                console.error('Error loading sales history:', error);
+                hideLoading('sales-history');
+            }
+        }
+
+        async function loadReportsData() {
+            try {
+                const period = document.getElementById('reports-period').value;
+                showLoading('reports');
+                
+                const reports = await posAPI.getReportsData(period);
+                
+                if (reports) {
+                    updateReportsData(reports);
+                }
+                
+                hideLoading('reports');
+            } catch (error) {
+                console.error('Error loading reports data:', error);
+                hideLoading('reports');
+            }
+        }
+
+        // Funciones de loading
+        function showLoading(section) {
+            // Aquí puedes agregar indicadores de carga
+            console.log(`Loading ${section}...`);
+        }
+
+        function hideLoading(section) {
+            // Ocultar indicadores de carga
+            console.log(`Finished loading ${section}`);
+        }
+
+        // Función para exportar reportes (funcionalidad adicional)
+        function exportReport(format = 'csv') {
+            // Implementar exportación de reportes
+            console.log(`Exporting report in ${format} format`);
+        }
+
+        // Función para imprimir reportes
+        function printReport() {
+            window.print();
+        }
+
+        // Iniciar auto-refresh cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            startAutoRefresh();
+        });
+
+        // Manejar errores de conexión
+        window.addEventListener('online', function() {
+            console.log('Connection restored');
+            loadSectionData(document.querySelector('.content.active').id);
+        });
+
+        window.addEventListener('offline', function() {
+            console.log('Connection lost');
+        });
+
+        // Funciones para conectar con tu base de datos Neon
+        // Ejemplo de configuración para el backend (Node.js/Express)
+        /*
+        // api/dashboard-stats.js (ejemplo para Vercel serverless)
+        import { Pool } from 'pg';
+
+        const pool = new Pool({
+            connectionString: process.env.DATABASE_URL,
+            ssl: { rejectUnauthorized: false }
+        });
+
+        export default async function handler(req, res) {
+            try {
+                const client = await pool.connect();
+                
+                // Consultas para obtener estadísticas
+                const periodIncomeQuery = await client.query(`
+                    SELECT COALESCE(SUM(total), 0) as income, COUNT(*) as sales_count
+                    FROM sales 
+                    WHERE date >= date_trunc('month', CURRENT_DATE)
+                `);
+                
+                const cashBalanceQuery = await client.query(`
+                    SELECT current_balance 
+                    FROM cash_register 
+                    WHERE id = 1
+                `);
+                
+                const customersQuery = await client.query(`
+                    SELECT COUNT(*) as total_customers 
+                    FROM customers
+                `);
+
+                client.release();
+
+                const stats = {
+                    periodIncome: periodIncomeQuery.rows[0].income,
+                    salesCount: periodIncomeQuery.rows[0].sales_count,
+                    cashBalance: cashBalanceQuery.rows[0]?.current_balance || 0,
+                    totalCustomers: customersQuery.rows[0].total_customers,
+                    // ... más estadísticas
+                };
+
+                res.status(200).json(stats);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+            }
+        }
+        */
+    </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "pos-dashboard-colmado-gerardo",
+  "version": "1.0.0",
+  "description": "Dashboard POS para Colmado Gerardo con base de datos PostgreSQL en Neon",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site ready'",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "pg": "^8.11.0",
+    "bcrypt": "^5.1.0"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "keywords": [
+    "pos",
+    "dashboard",
+    "postgresql",
+    "neon",
+    "vercel"
+  ],
+  "author": "Colmado Gerardo",
+  "license": "MIT"
+}
