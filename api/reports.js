@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
     const whereClause = periodConditions[period] || periodConditions.month;
 
-    // 1. VENTAS Y GANANCIAS
+    // 1. VENTAS Y GANANCIAS (Consulta simplificada)
     const salesFinancialQuery = `
       SELECT 
         -- Ventas generales
@@ -41,14 +41,6 @@ export default async function handler(req, res) {
         COALESCE(SUM(subtotal), 0) as subtotal_amount,
         COALESCE(SUM(tax), 0) as total_tax,
         COALESCE(AVG(total), 0) as avg_sale,
-        
-        -- Costos y ganancias
-        COALESCE(SUM(
-          (SELECT SUM(si.quantity * COALESCE(p.cost, 0))
-           FROM sale_items si 
-           JOIN products p ON si.product_id = p.id 
-           WHERE si.sale_id = s.id)
-        ), 0) as total_costs,
         
         -- Ventas por día de la semana
         COUNT(CASE WHEN EXTRACT(DOW FROM date) = 0 THEN 1 END) as sunday_sales,
@@ -72,20 +64,30 @@ export default async function handler(req, res) {
       WHERE ${whereClause}
     `;
 
-    // 2. PRODUCTOS POPULARES
+    // 2. COSTOS SEPARADOS (Consulta simplificada)
+    const costsQuery = `
+      SELECT 
+        COALESCE(SUM(si.quantity * COALESCE(p.cost, 0)), 0) as total_costs
+      FROM sale_items si
+      JOIN products p ON si.product_id = p.id
+      JOIN sales s ON si.sale_id = s.id
+      WHERE s.${whereClause}
+    `;
+
+    // 3. PRODUCTOS POPULARES (Sin ROUND problemático)
     const topProductsQuery = `
       SELECT 
         p.id,
         p.name,
         p.price,
-        p.cost,
-        SUM(si.quantity) as total_sold,
+        COALESCE(p.cost, 0) as cost,
+        COALESCE(SUM(si.quantity), 0) as total_sold,
         COUNT(DISTINCT si.sale_id) as times_sold,
-        SUM(si.subtotal) as total_revenue,
-        SUM(si.quantity * COALESCE(p.cost, 0)) as total_cost,
-        (SUM(si.subtotal) - SUM(si.quantity * COALESCE(p.cost, 0))) as total_profit,
-        ROUND(AVG(si.unit_price), 2) as avg_selling_price,
-        p.stock as current_stock
+        COALESCE(SUM(si.subtotal), 0) as total_revenue,
+        COALESCE(SUM(si.quantity * COALESCE(p.cost, 0)), 0) as total_cost,
+        COALESCE(SUM(si.subtotal) - SUM(si.quantity * COALESCE(p.cost, 0)), 0) as total_profit,
+        COALESCE(AVG(si.unit_price), 0) as avg_selling_price,
+        COALESCE(p.stock, 0) as current_stock
       FROM sale_items si
       JOIN products p ON si.product_id = p.id
       JOIN sales s ON si.sale_id = s.id
@@ -95,13 +97,13 @@ export default async function handler(req, res) {
       LIMIT 20
     `;
 
-    // 3. VENTAS DIARIAS (últimos 30 días)
+    // 4. VENTAS DIARIAS (Simplificado)
     const dailySalesQuery = `
       SELECT 
         DATE(date) as sale_date,
         COUNT(*) as sales_count,
-        SUM(total) as daily_total,
-        AVG(total) as daily_avg
+        COALESCE(SUM(total), 0) as daily_total,
+        COALESCE(AVG(total), 0) as daily_avg
       FROM sales
       WHERE date >= CURRENT_DATE - INTERVAL '30 days'
       GROUP BY DATE(date)
@@ -109,7 +111,7 @@ export default async function handler(req, res) {
       LIMIT 30
     `;
 
-    // 4. CLIENTES TOP
+    // 5. CLIENTES TOP (Simplificado)
     const topCustomersQuery = `
       SELECT 
         c.id,
@@ -117,8 +119,8 @@ export default async function handler(req, res) {
         c.phone,
         c.email,
         COUNT(s.id) as total_purchases,
-        SUM(s.total) as total_spent,
-        AVG(s.total) as avg_purchase,
+        COALESCE(SUM(s.total), 0) as total_spent,
+        COALESCE(AVG(s.total), 0) as avg_purchase,
         MAX(s.date) as last_purchase
       FROM customers c
       JOIN sales s ON c.id = s.customer_id
@@ -128,26 +130,26 @@ export default async function handler(req, res) {
       LIMIT 10
     `;
 
-    // 5. PRODUCTOS CON STOCK BAJO
+    // 6. PRODUCTOS CON STOCK BAJO (Sin ROUND)
     const lowStockQuery = `
       SELECT 
         id,
         name,
-        stock,
-        min_stock,
-        price,
-        (price * stock) as stock_value,
+        COALESCE(stock, 0) as stock,
+        COALESCE(min_stock, 0) as min_stock,
+        COALESCE(price, 0) as price,
+        COALESCE(price * stock, 0) as stock_value,
         CASE 
-          WHEN min_stock > 0 THEN ROUND((stock::float / min_stock::float) * 100, 1)
+          WHEN COALESCE(min_stock, 0) > 0 THEN (COALESCE(stock, 0)::float / min_stock::float) * 100
           ELSE 100
         END as stock_percentage
       FROM products
-      WHERE stock <= min_stock AND available = true
+      WHERE COALESCE(stock, 0) <= COALESCE(min_stock, 0) AND available = true
       ORDER BY stock_percentage ASC, stock ASC
       LIMIT 20
     `;
 
-    // 6. RESUMEN POR VENDEDOR
+    // 7. RESUMEN POR VENDEDOR
     const sellerSummaryQuery = `
       SELECT 
         u.id,
@@ -155,8 +157,8 @@ export default async function handler(req, res) {
         u.first_name,
         u.last_name,
         COUNT(s.id) as total_sales,
-        SUM(s.total) as total_amount,
-        AVG(s.total) as avg_sale,
+        COALESCE(SUM(s.total), 0) as total_amount,
+        COALESCE(AVG(s.total), 0) as avg_sale,
         MAX(s.date) as last_sale
       FROM users u
       JOIN sales s ON u.id = s.user_id
@@ -165,27 +167,71 @@ export default async function handler(req, res) {
       ORDER BY total_amount DESC
     `;
 
-    // Ejecutar todas las consultas
-    const [
-      salesResult,
-      topProductsResult,
-      dailySalesResult,
-      topCustomersResult,
-      lowStockResult,
-      sellerSummaryResult
-    ] = await Promise.all([
-      client.query(salesFinancialQuery),
-      client.query(topProductsQuery),
-      client.query(dailySalesQuery),
-      client.query(topCustomersQuery),
-      client.query(lowStockQuery),
-      client.query(sellerSummaryQuery)
-    ]);
+    // Ejecutar consultas básicas primero
+    let salesResult, costsResult;
+    
+    try {
+      salesResult = await client.query(salesFinancialQuery);
+    } catch (error) {
+      console.error('Sales query error:', error);
+      salesResult = { rows: [{ 
+        total_sales: 0, total_revenue: 0, subtotal_amount: 0, total_tax: 0, avg_sale: 0,
+        sunday_sales: 0, monday_sales: 0, tuesday_sales: 0, wednesday_sales: 0,
+        thursday_sales: 0, friday_sales: 0, saturday_sales: 0,
+        cash_sales: 0, card_sales: 0, transfer_sales: 0,
+        cash_amount: 0, card_amount: 0, transfer_amount: 0
+      }] };
+    }
+
+    try {
+      costsResult = await client.query(costsQuery);
+    } catch (error) {
+      console.error('Costs query error:', error);
+      costsResult = { rows: [{ total_costs: 0 }] };
+    }
+
+    // Consultas opcionales con manejo de errores individual
+    let topProductsResult = { rows: [] };
+    let dailySalesResult = { rows: [] };
+    let topCustomersResult = { rows: [] };
+    let lowStockResult = { rows: [] };
+    let sellerSummaryResult = { rows: [] };
+
+    try {
+      topProductsResult = await client.query(topProductsQuery);
+    } catch (error) {
+      console.error('Top products query error:', error);
+    }
+
+    try {
+      dailySalesResult = await client.query(dailySalesQuery);
+    } catch (error) {
+      console.error('Daily sales query error:', error);
+    }
+
+    try {
+      topCustomersResult = await client.query(topCustomersQuery);
+    } catch (error) {
+      console.error('Top customers query error:', error);
+    }
+
+    try {
+      lowStockResult = await client.query(lowStockQuery);
+    } catch (error) {
+      console.error('Low stock query error:', error);
+    }
+
+    try {
+      sellerSummaryResult = await client.query(sellerSummaryQuery);
+    } catch (error) {
+      console.error('Seller summary query error:', error);
+    }
 
     // Procesar datos financieros
     const salesData = salesResult.rows[0];
+    const costsData = costsResult.rows[0];
     const totalRevenue = parseFloat(salesData.total_revenue);
-    const totalCosts = parseFloat(salesData.total_costs);
+    const totalCosts = parseFloat(costsData.total_costs || 0);
     const totalProfit = totalRevenue - totalCosts;
     const profitMargin = totalRevenue > 0 ? (totalProfit / totalRevenue * 100) : 0;
 

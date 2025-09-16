@@ -424,6 +424,9 @@
                     <h1>🏪 Dashboard</h1>
                 </div>
                 <div class="user-info">
+                    <button onclick="loadDashboardData()" style="padding: 0.5rem 1rem; margin-right: 1rem; border: 1px solid #ccc; border-radius: 4px; background: white; cursor: pointer;">
+                        Actualizar
+                    </button>
                     <div class="avatar">A</div>
                     <div>
                         <div style="font-weight: 600;">Admin</div>
@@ -819,16 +822,45 @@
 
         // Actualizar estadísticas del dashboard
         function updateDashboardStats(data) {
-            document.getElementById('period-income').textContent = formatCurrency(data.periodIncome);
-            document.getElementById('weekly-sales').textContent = formatCurrency(data.weeklySales);
-            document.getElementById('monthly-sales').textContent = formatCurrency(data.monthlySales);
-            document.getElementById('cash-balance').textContent = formatCurrency(data.cashBalance);
-            document.getElementById('total-sales-count').textContent = data.totalSales;
-            document.getElementById('avg-sale').textContent = formatCurrency(data.avgSale);
-            document.getElementById('inventory-value').textContent = formatCurrency(data.inventoryValue);
-            document.getElementById('total-customers').textContent = data.totalCustomers;
-            document.getElementById('low-stock-count').textContent = data.lowStockCount;
-            document.getElementById('period-sales-count').textContent = data.totalSales;
+            // Asegurar que los datos existan antes de actualizar
+            if (!data) {
+                console.error('No data provided to updateDashboardStats');
+                return;
+            }
+
+            console.log('Updating dashboard with data:', data);
+
+            // Actualizar cada elemento del dashboard
+            const elements = {
+                'period-income': formatCurrency(data.periodIncome || 0),
+                'weekly-sales': formatCurrency(data.weeklySales || 0),
+                'monthly-sales': formatCurrency(data.monthlySales || 0),
+                'cash-balance': formatCurrency(data.cashBalance || 0),
+                'total-sales-count': (data.totalSales || 0).toString(),
+                'avg-sale': formatCurrency(data.avgSale || 0),
+                'inventory-value': formatCurrency(data.inventoryValue || 0),
+                'total-customers': (data.totalCustomers || 0).toString(),
+                'low-stock-count': (data.lowStockCount || 0).toString(),
+                'period-sales-count': (data.totalSales || 0).toString()
+            };
+
+            // Actualizar cada elemento si existe en el DOM
+            Object.entries(elements).forEach(([id, value]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                } else {
+                    console.warn(`Element with id '${id}' not found`);
+                }
+            });
+
+            // Actualizar crecimiento semanal si existe
+            const weeklyGrowthElement = document.querySelector('.stat-change.positive, .stat-change.negative');
+            if (weeklyGrowthElement && data.weeklyGrowth !== undefined) {
+                const growthValue = parseFloat(data.weeklyGrowth);
+                weeklyGrowthElement.textContent = `📈 ${Math.abs(growthValue).toFixed(1)}% ${growthValue >= 0 ? 'crecimiento' : 'disminución'} vs semana anterior`;
+                weeklyGrowthElement.className = growthValue >= 0 ? 'stat-change positive' : 'stat-change negative';
+            }
         }
 
         // Actualizar tabla de historial de ventas
@@ -889,54 +921,30 @@
             });
         }
 
-        // API Functions (Para conectar con tu base de datos en Neon)
+        // API Functions (Conectar con las APIs de Vercel)
         class PosAPI {
             constructor() {
-                this.baseURL = '/api'; // Cambiar por tu endpoint de API
+                this.baseURL = '/api';
             }
 
             // Obtener estadísticas del dashboard
             async getDashboardStats() {
                 try {
-                    // Ejemplo de consultas SQL que necesitarías ejecutar
-                    const queries = {
-                        periodIncome: `
-                            SELECT COALESCE(SUM(total), 0) as income, COUNT(*) as sales_count
-                            FROM sales 
-                            WHERE date >= date_trunc('month', CURRENT_DATE)
-                        `,
-                        weeklySales: `
-                            SELECT COALESCE(SUM(total), 0) as weekly_sales
-                            FROM sales 
-                            WHERE date >= date_trunc('week', CURRENT_DATE)
-                        `,
-                        monthlySales: `
-                            SELECT COALESCE(SUM(total), 0) as monthly_sales
-                            FROM sales 
-                            WHERE date >= date_trunc('month', CURRENT_DATE)
-                        `,
-                        cashBalance: `
-                            SELECT current_balance 
-                            FROM cash_register 
-                            WHERE id = 1
-                        `,
-                        totalCustomers: `
-                            SELECT COUNT(*) as total_customers 
-                            FROM customers
-                        `,
-                        inventoryValue: `
-                            SELECT COALESCE(SUM(price * stock), 0) as inventory_value,
-                                   COUNT(CASE WHEN stock <= min_stock THEN 1 END) as low_stock_count
-                            FROM products 
-                            WHERE available = true
-                        `
-                    };
-
-                    // En una implementación real, harías fetch a tu API
-                    // const response = await fetch(`${this.baseURL}/dashboard-stats`);
-                    // return await response.json();
-
-                    // Por ahora retornamos datos mock
+                    console.log('Fetching dashboard stats...');
+                    const response = await fetch(`${this.baseURL}/dashboard-stats`);
+                    console.log('Dashboard stats response status:', response.status);
+                    
+                    const result = await response.json();
+                    console.log('Dashboard stats result:', result);
+                    
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error desconocido');
+                    }
+                    
+                    return result.data;
+                } catch (error) {
+                    console.error('Error fetching dashboard stats:', error);
+                    // Retornar datos por defecto en caso de error
                     return {
                         periodIncome: 0,
                         weeklySales: 0,
@@ -949,9 +957,6 @@
                         lowStockCount: 0,
                         salesCount: 0
                     };
-                } catch (error) {
-                    console.error('Error fetching dashboard stats:', error);
-                    return null;
                 }
             }
 
@@ -1027,10 +1032,13 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing dashboard...');
+            console.log('=== DOM LOADED - INITIALIZING DASHBOARD ===');
             
             // Cargar datos iniciales del dashboard
-            loadDashboardData();
+            setTimeout(() => {
+                console.log('Loading dashboard data after DOM ready...');
+                loadDashboardData();
+            }, 500);
             
             // Event listeners para selectores de período
             document.getElementById('history-period')?.addEventListener('change', function() {
@@ -1066,15 +1074,18 @@
         // Cargar datos reales desde la API
         async function loadDashboardData() {
             try {
+                console.log('=== LOADING DASHBOARD DATA ===');
                 showLoading('dashboard');
                 const stats = await posAPI.getDashboardStats();
                 
+                console.log('Stats received:', stats);
+                
                 if (stats) {
-                    // Calcular promedio de venta
-                    stats.avgSale = stats.salesCount > 0 ? stats.periodIncome / stats.salesCount : 0;
-                    stats.totalSales = stats.salesCount;
-                    
+                    console.log('Calling updateDashboardStats with:', stats);
                     updateDashboardStats(stats);
+                    console.log('Dashboard stats updated successfully');
+                } else {
+                    console.error('No stats returned from API');
                 }
                 
                 hideLoading('dashboard');
