@@ -599,9 +599,12 @@
                 <span class="period-label">Período:</span>
                 <select class="period-select" id="history-period">
                     <option value="today">Hoy</option>
+                    <option value="yesterday">Ayer</option>
                     <option value="week">Esta Semana</option>
                     <option value="month" selected>Este Mes</option>
+                    <option value="quarter">Este Trimestre</option>
                     <option value="year">Este Año</option>
+                    <option value="all">Todas</option>
                 </select>
             </div>
 
@@ -615,6 +618,9 @@
                             <th>ID</th>
                             <th>Fecha</th>
                             <th>Cliente</th>
+                            <th>Productos</th>
+                            <th>Subtotal</th>
+                            <th>Impuesto</th>
                             <th>Total</th>
                             <th>Método de Pago</th>
                             <th>NCF</th>
@@ -623,7 +629,7 @@
                     </thead>
                     <tbody id="sales-history-tbody">
                         <tr>
-                            <td colspan="7" class="empty-state">
+                            <td colspan="10" class="empty-state">
                                 <div>No hay ventas registradas para este período</div>
                             </td>
                         </tr>
@@ -637,6 +643,8 @@
             <div class="period-selector">
                 <span class="period-label">Período:</span>
                 <select class="period-select" id="reports-period">
+                    <option value="today">Hoy</option>
+                    <option value="week">Esta Semana</option>
                     <option value="month" selected>Este Mes</option>
                     <option value="quarter">Este Trimestre</option>
                     <option value="year">Este Año</option>
@@ -659,59 +667,94 @@
                 </div>
             </div>
 
-            <!-- Sales and Earnings -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                <div class="stat-card">
-                    <div class="stat-title">Ventas Diarias</div>
-                    <div class="stat-value" id="reports-daily-sales">RD$0.00</div>
-                    <div class="stat-description">0.0% vs. ayer</div>
+            <!-- Financial Summary Cards -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="stat-card success">
+                    <div class="stat-title">💰 Ingresos del Período</div>
+                    <div class="stat-value" id="reports-total-revenue">RD$0.00</div>
+                    <div class="stat-description">Total de <span id="reports-total-sales-count">0</span> ventas</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-title">Ventas Semanales</div>
-                    <div class="stat-value" id="reports-weekly-sales">RD$200.00</div>
-                    <div class="stat-description">0.0% vs. semana pasada</div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-title">💸 Costos del Período</div>
+                    <div class="stat-value" id="reports-total-costs">RD$0.00</div>
+                    <div class="stat-description"><span id="reports-cost-percentage">0.0</span>% de los ingresos</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-title">🎯 Ventas del Período</div>
-                    <div class="stat-value" id="reports-period-sales">RD$200.00</div>
-                    <div class="stat-description">Margen de ganancia: 50.0%<br>En este mes</div>
+                
+                <div class="stat-card success">
+                    <div class="stat-title">💚 Ganancia del Período</div>
+                    <div class="stat-value" id="reports-total-profit">RD$0.00</div>
+                    <div class="stat-description">Margen: <span id="reports-profit-margin">0.0</span>%</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-title">Productos Vendidos</div>
-                    <div class="stat-value" id="reports-products-sold">1</div>
-                    <div class="stat-description">En este mes</div>
+
+                <div class="stat-card purple">
+                    <div class="stat-title">📊 Promedio por Venta</div>
+                    <div class="stat-value" id="reports-avg-sale">RD$0.00</div>
+                    <div class="stat-description">Ticket promedio del período</div>
+                </div>
+
+                <div class="stat-card orange">
+                    <div class="stat-title">💳 Impuestos Cobrados</div>
+                    <div class="stat-value" id="reports-total-tax">RD$0.00</div>
+                    <div class="stat-description">ITBIS del período</div>
+                </div>
+
+                <div class="stat-card primary">
+                    <div class="stat-title">👥 Clientes Únicos</div>
+                    <div class="stat-value" id="reports-unique-customers">0</div>
+                    <div class="stat-description">Clientes que compraron</div>
                 </div>
             </div>
 
-            <!-- Financial Analysis -->
+            <!-- Payment Methods Analysis -->
             <div class="chart-container">
                 <div class="chart-header">
-                    <div class="chart-title">📊 Análisis Financiero del Período</div>
-                    <div class="chart-subtitle">Visualización de ingresos, costos y ganancias - este mes</div>
+                    <div class="chart-title">💳 Análisis por Método de Pago</div>
+                    <div class="chart-subtitle">Distribución de ventas por método de pago - <span id="reports-period-text">este mes</span></div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div class="stat-card">
+                        <div class="stat-title">💵 Efectivo</div>
+                        <div class="stat-value" id="reports-cash-amount">RD$0.00</div>
+                        <div class="stat-description"><span id="reports-cash-count">0</span> transacciones</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">💳 Tarjeta</div>
+                        <div class="stat-value" id="reports-card-amount">RD$0.00</div>
+                        <div class="stat-description"><span id="reports-card-count">0</span> transacciones</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">🏦 Transferencia</div>
+                        <div class="stat-value" id="reports-transfer-amount">RD$0.00</div>
+                        <div class="stat-description"><span id="reports-transfer-count">0</span> transacciones</div>
+                    </div>
                 </div>
             </div>
 
-            <div class="financial-grid">
-                <div class="financial-card income">
-                    <div class="stat-title">💰 Ingresos del Período</div>
-                    <div class="stat-description">En este mes</div>
-                    <div class="stat-value" id="reports-income">RD$200.00</div>
-                    <div class="stat-description">Total de 1 ventas</div>
+            <!-- Top Products Table -->
+            <div class="table-container" style="margin-top: 2rem;">
+                <div class="table-header">
+                    <div class="table-title">🏆 Productos Más Vendidos</div>
                 </div>
-
-                <div class="financial-card cost">
-                    <div class="stat-title">🏷️ Costos del Período</div>
-                    <div class="stat-description">En este mes</div>
-                    <div class="stat-value" id="reports-costs">RD$100.00</div>
-                    <div class="stat-description">50.0% de los ingresos</div>
-                </div>
-
-                <div class="financial-card profit">
-                    <div class="stat-title">💚 Ganancia del Período</div>
-                    <div class="stat-description">En este mes</div>
-                    <div class="stat-value" id="reports-profit">RD$100.00</div>
-                    <div class="stat-description">Margen real: 50.0%</div>
-                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad Vendida</th>
+                            <th>Ingresos</th>
+                            <th>Ganancia</th>
+                            <th>Margen %</th>
+                            <th>Stock Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top-products-tbody">
+                        <tr>
+                            <td colspan="6" class="empty-state">
+                                <div>No hay productos vendidos en este período</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -870,7 +913,7 @@
             if (sales.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="empty-state">
+                        <td colspan="10" class="empty-state">
                             <div>No hay ventas registradas para este período</div>
                         </td>
                     </tr>
@@ -878,28 +921,160 @@
                 return;
             }
 
-            tbody.innerHTML = sales.map(sale => `
-                <tr>
-                    <td>#${sale.id}</td>
-                    <td>${formatDate(sale.date)}</td>
-                    <td>${sale.customer_name || 'Cliente General'}</td>
-                    <td>${formatCurrency(sale.total)}</td>
-                    <td><span class="status-badge status-${sale.payment_method}">${sale.payment_method}</span></td>
-                    <td>${sale.ncf || 'N/A'}</td>
-                    <td><span class="status-badge status-completed">Completada</span></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = sales.map(sale => {
+                // Formatear productos vendidos
+                const productsDisplay = sale.items_preview 
+                    ? `<div style="max-width: 200px; font-size: 0.85em;">
+                         <strong>${sale.items_count} items:</strong><br>
+                         ${sale.items_preview}
+                         ${sale.items_count > 3 ? '<br><em>+ más productos...</em>' : ''}
+                       </div>`
+                    : `<span style="color: #666;">${sale.items_count || 0} items</span>`;
+
+                return `
+                    <tr>
+                        <td>#${sale.id}</td>
+                        <td style="font-size: 0.85em;">
+                            ${formatDate(sale.date)}
+                        </td>
+                        <td>
+                            <div>
+                                <strong>${sale.customer?.name || 'Cliente General'}</strong>
+                                ${sale.customer?.phone ? `<br><small style="color: #666;">${sale.customer.phone}</small>` : ''}
+                            </div>
+                        </td>
+                        <td>${productsDisplay}</td>
+                        <td>${formatCurrency(sale.subtotal)}</td>
+                        <td>${formatCurrency(sale.tax)}</td>
+                        <td><strong>${formatCurrency(sale.total)}</strong></td>
+                        <td>
+                            <span class="status-badge ${getPaymentMethodClass(sale.payment_method)}">
+                                ${getPaymentMethodText(sale.payment_method)}
+                            </span>
+                        </td>
+                        <td style="font-size: 0.8em;">${sale.ncf || 'N/A'}</td>
+                        <td><span class="status-badge status-completed">Completada</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Funciones auxiliares para métodos de pago
+        function getPaymentMethodClass(method) {
+            const classes = {
+                cash: 'status-completed',
+                card: 'status-pending',
+                transfer: 'status-completed'
+            };
+            return classes[method] || 'status-completed';
+        }
+
+        function getPaymentMethodText(method) {
+            const texts = {
+                cash: 'Efectivo',
+                card: 'Tarjeta',
+                transfer: 'Transferencia'
+            };
+            return texts[method] || method;
         }
 
         // Actualizar datos de reportes
         function updateReportsData(data) {
-            document.getElementById('reports-daily-sales').textContent = formatCurrency(data.dailySales);
-            document.getElementById('reports-weekly-sales').textContent = formatCurrency(data.weeklySales);
-            document.getElementById('reports-period-sales').textContent = formatCurrency(data.periodSales);
-            document.getElementById('reports-products-sold').textContent = data.productsSold;
-            document.getElementById('reports-income').textContent = formatCurrency(data.income);
-            document.getElementById('reports-costs').textContent = formatCurrency(data.costs);
-            document.getElementById('reports-profit').textContent = formatCurrency(data.profit);
+            if (!data) {
+                console.error('No data provided to updateReportsData');
+                return;
+            }
+
+            console.log('Updating reports with data:', data);
+
+            // Datos financieros principales
+            const financialSummary = data.financial_summary || {};
+            const paymentMethods = data.sales_by_payment_method || {};
+            
+            // Actualizar cards financieros
+            document.getElementById('reports-total-revenue').textContent = formatCurrency(financialSummary.total_revenue || 0);
+            document.getElementById('reports-total-costs').textContent = formatCurrency(financialSummary.total_costs || 0);
+            document.getElementById('reports-total-profit').textContent = formatCurrency(financialSummary.total_profit || 0);
+            document.getElementById('reports-profit-margin').textContent = (financialSummary.profit_margin || 0).toFixed(1);
+            document.getElementById('reports-avg-sale').textContent = formatCurrency(financialSummary.avg_sale || 0);
+            document.getElementById('reports-total-tax').textContent = formatCurrency(financialSummary.total_tax || 0);
+            document.getElementById('reports-total-sales-count').textContent = financialSummary.total_sales || 0;
+            
+            // Calcular porcentaje de costos
+            const costPercentage = financialSummary.total_revenue > 0 
+                ? ((financialSummary.total_costs / financialSummary.total_revenue) * 100).toFixed(1)
+                : 0;
+            document.getElementById('reports-cost-percentage').textContent = costPercentage;
+
+            // Contar clientes únicos desde top_customers
+            const uniqueCustomers = data.top_customers ? data.top_customers.length : 0;
+            document.getElementById('reports-unique-customers').textContent = uniqueCustomers;
+
+            // Métodos de pago
+            document.getElementById('reports-cash-amount').textContent = formatCurrency(paymentMethods.cash?.amount || 0);
+            document.getElementById('reports-cash-count').textContent = paymentMethods.cash?.count || 0;
+            document.getElementById('reports-card-amount').textContent = formatCurrency(paymentMethods.card?.amount || 0);
+            document.getElementById('reports-card-count').textContent = paymentMethods.card?.count || 0;
+            document.getElementById('reports-transfer-amount').textContent = formatCurrency(paymentMethods.transfer?.amount || 0);
+            document.getElementById('reports-transfer-count').textContent = paymentMethods.transfer?.count || 0;
+
+            // Actualizar texto del período
+            const periodText = {
+                today: 'hoy',
+                week: 'esta semana',
+                month: 'este mes',
+                quarter: 'este trimestre',
+                year: 'este año'
+            };
+            const currentPeriod = document.getElementById('reports-period').value;
+            document.getElementById('reports-period-text').textContent = periodText[currentPeriod] || 'este período';
+
+            // Actualizar tabla de productos
+            updateTopProductsTable(data.top_products || []);
+        }
+
+        // Actualizar tabla de productos más vendidos
+        function updateTopProductsTable(products) {
+            const tbody = document.getElementById('top-products-tbody');
+            
+            if (products.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty-state">
+                            <div>No hay productos vendidos en este período</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = products.map(product => {
+                const marginPercentage = product.total_revenue > 0 
+                    ? ((product.total_profit / product.total_revenue) * 100).toFixed(1)
+                    : 0;
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${product.name}</strong><br>
+                            <small style="color: #666;">RD${parseFloat(product.price).toFixed(2)}</small>
+                        </td>
+                        <td>${parseFloat(product.total_sold).toFixed(1)}</td>
+                        <td>${formatCurrency(product.total_revenue)}</td>
+                        <td style="color: ${product.total_profit >= 0 ? '#10b981' : '#ef4444'};">
+                            ${formatCurrency(product.total_profit)}
+                        </td>
+                        <td style="color: ${marginPercentage >= 0 ? '#10b981' : '#ef4444'};">
+                            ${marginPercentage}%
+                        </td>
+                        <td>
+                            <span style="color: ${product.current_stock <= 10 ? '#ef4444' : '#10b981'};">
+                                ${product.current_stock}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         // Funciones de utilidad
@@ -980,36 +1155,37 @@
             // Obtener datos de reportes
             async getReportsData(period = 'month') {
                 try {
+                    console.log('Fetching reports data for period:', period);
                     const response = await fetch(`${this.baseURL}/reports?period=${period}&report_type=all`);
+                    console.log('Reports response status:', response.status);
+                    
                     const result = await response.json();
+                    console.log('Reports result:', result);
                     
                     if (!result.success) {
                         throw new Error(result.error || 'Error desconocido');
                     }
                     
-                    const data = result.data;
-                    
-                    return {
-                        dailySales: 0, // Calcular desde daily_sales
-                        weeklySales: data.financial_summary?.total_revenue || 0,
-                        periodSales: data.financial_summary?.total_revenue || 0,
-                        productsSold: data.top_products?.length || 0,
-                        income: data.financial_summary?.total_revenue || 0,
-                        costs: data.financial_summary?.total_costs || 0,
-                        profit: data.financial_summary?.total_profit || 0,
-                        topProducts: data.top_products || []
-                    };
+                    return result.data;
                 } catch (error) {
                     console.error('Error fetching reports data:', error);
                     return {
-                        dailySales: 0,
-                        weeklySales: 0,
-                        periodSales: 0,
-                        productsSold: 0,
-                        income: 0,
-                        costs: 0,
-                        profit: 0,
-                        topProducts: []
+                        financial_summary: {
+                            total_sales: 0,
+                            total_revenue: 0,
+                            total_costs: 0,
+                            total_profit: 0,
+                            profit_margin: 0,
+                            avg_sale: 0,
+                            total_tax: 0
+                        },
+                        sales_by_payment_method: {
+                            cash: { count: 0, amount: 0 },
+                            card: { count: 0, amount: 0 },
+                            transfer: { count: 0, amount: 0 }
+                        },
+                        top_products: [],
+                        top_customers: []
                     };
                 }
             }
@@ -1113,12 +1289,18 @@
         async function loadReportsData() {
             try {
                 const period = document.getElementById('reports-period').value;
+                console.log('=== LOADING REPORTS DATA ===');
+                console.log('Period:', period);
                 showLoading('reports');
                 
                 const reports = await posAPI.getReportsData(period);
                 
                 if (reports) {
+                    console.log('Reports data received:', reports);
                     updateReportsData(reports);
+                    console.log('Reports updated successfully');
+                } else {
+                    console.error('No reports data returned from API');
                 }
                 
                 hideLoading('reports');
