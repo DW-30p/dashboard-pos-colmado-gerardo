@@ -378,8 +378,118 @@
             background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+            padding-bottom: 1rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray-500);
+            padding: 0.25rem;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background: var(--gray-100);
+            color: var(--gray-800);
+        }
+
+        .view-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .view-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .modal-sale-info {
+            background: var(--gray-50);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .products-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .product-details {
+            font-size: 0.85rem;
+            color: var(--gray-600);
+            margin-top: 0.25rem;
+        }
+
+        .product-total {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
@@ -467,7 +577,7 @@
                         <div>
                             <div class="stat-title">Ventas Semanales</div>
                             <div class="stat-value" id="weekly-sales">RD$0</div>
-                            <div class="stat-change positive">📈 0.0% crecimiento vs semana anterior</div>
+                            <div class="stat-change positive">📈 <span id="weekly-growth">0.0</span>% vs semana anterior</div>
                         </div>
                         <div class="stat-icon success">📊</div>
                     </div>
@@ -484,14 +594,14 @@
                     </div>
                 </div>
 
-                <div class="stat-card success">
+                <div class="stat-card warning">
                     <div class="stat-header">
                         <div>
-                            <div class="stat-title">💰 Balance de Caja</div>
-                            <div class="stat-value" id="cash-balance">RD$0</div>
-                            <div class="stat-description">📊 Total efectivo disponible</div>
+                            <div class="stat-title">Valor Inventario</div>
+                            <div class="stat-value" id="inventory-value">RD$0</div>
+                            <div class="stat-description">📊 Total <span id="low-stock-count">0</span> productos con stock bajo</div>
                         </div>
-                        <div class="stat-icon success">💳</div>
+                        <div class="stat-icon warning">📦</div>
                     </div>
                 </div>
 
@@ -517,17 +627,6 @@
                     </div>
                 </div>
 
-                <div class="stat-card warning">
-                    <div class="stat-header">
-                        <div>
-                            <div class="stat-title">Valor Inventario</div>
-                            <div class="stat-value" id="inventory-value">RD$0</div>
-                            <div class="stat-description">📊 Total <span id="low-stock-count">0</span> productos con stock bajo</div>
-                        </div>
-                        <div class="stat-icon warning">📦</div>
-                    </div>
-                </div>
-
                 <div class="stat-card primary">
                     <div class="stat-header">
                         <div>
@@ -538,56 +637,75 @@
                         <div class="stat-icon primary">👥</div>
                     </div>
                 </div>
+
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">💚 Ganancia del Mes</div>
+                            <div class="stat-value" id="period-profit">RD$0</div>
+                            <div class="stat-description">📊 Margen: <span id="period-profit-margin">0.0</span>%</div>
+                        </div>
+                        <div class="stat-icon success">💰</div>
+                    </div>
+                </div>
             </div>
 
             <!-- Charts Row -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
                 <div class="chart-container">
                     <div class="chart-header">
-                        <div class="chart-title">Ventas por Método de Pago</div>
+                        <div class="chart-title">Ventas por Día de la Semana</div>
                         <div class="chart-subtitle">En este mes</div>
                     </div>
-                    <div class="chart" id="payment-methods-chart">
-                        <div class="empty-state">
-                            <div class="empty-icon">📊</div>
-                            <div>No hay datos para este período</div>
+                    <div id="daily-sales-chart">
+                        <div style="padding: 1rem;">
+                            <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; text-align: center; font-size: 0.8rem;">
+                                <div style="padding: 0.5rem; background: var(--gray-100); border-radius: 4px;">
+                                    <div style="font-weight: 600;">Dom</div>
+                                    <div style="font-size: 1.2rem; color: var(--primary-color);" id="sunday-sales">0</div>
+                                </div>
+                                <div style="padding: 0.5rem; background: var(--gray-100); border-radius: 4px;">
+                                    <div style="font-weight: 600;">Lun</div>
+                                    <div style="font-size: 1.2rem; color: var(--primary-color);" id="monday-sales">0</div>
+                                </div>
+                                <div style="padding: 0.5rem; background: var(--gray-100); border-radius: 4px;">
+                                    <div style="font-weight: 600;">Mar</div>
+                                    <div style="font-size: 1.2rem; color: var(--primary-color);" id="tuesday-sales">0</div>
+                                </div>
+                                <div style="padding: 0.5rem; background: var(--gray-100); border-radius: 4px;">
+                                    <div style="font-weight: 600;">Mié</div>
+                                    <div style="font-size: 1.2rem; color: var(--primary-color);" id="wednesday-sales">0</div>
+                                </div>
+                                <div style="padding: 0.5rem; background: var(--gray-100); border-radius: 4px;">
+                                    <div style="font-weight: 600;">Jue</div>
+                                    <div style="font-size: 1.2rem; color: var(--primary-color);" id="thursday-sales">0</div>
+                                </div>
+                                <div style="padding: 0.5rem; background: var(--gray-100); border-radius: 4px;">
+                                    <div style="font-weight: 600;">Vie</div>
+                                    <div style="font-size: 1.2rem; color: var(--primary-color);" id="friday-sales">0</div>
+                                </div>
+                                <div style="padding: 0.5rem; background: var(--gray-100); border-radius: 4px;">
+                                    <div style="font-weight: 600;">Sáb</div>
+                                    <div style="font-size: 1.2rem; color: var(--primary-color);" id="saturday-sales">0</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="chart-container">
                     <div class="chart-header">
-                        <div class="chart-title">Ventas por Día de la Semana</div>
-                        <div class="chart-subtitle">En este mes</div>
+                        <div class="chart-title">Productos Populares</div>
+                        <div class="chart-subtitle">Los más vendidos este mes</div>
                     </div>
-                    <div class="chart" id="daily-sales-chart">
-                        <div class="empty-state">
-                            <div class="empty-icon">📈</div>
-                            <div>No hay datos para este período</div>
+                    <div id="popular-products-chart">
+                        <div style="padding: 1rem;">
+                            <ul id="popular-products-list" style="list-style: none; margin: 0; padding: 0;">
+                                <li style="text-align: center; padding: 2rem; color: #666;">
+                                    No hay productos para mostrar
+                                </li>
+                            </ul>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Section -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                <div class="table-container">
-                    <div class="table-header">
-                        <div class="table-title">Ventas Recientes</div>
-                    </div>
-                    <div class="empty-state">
-                        <div class="empty-icon">🛒</div>
-                        <div>No hay ventas recientes</div>
-                    </div>
-                </div>
-
-                <div class="table-container">
-                    <div class="table-header">
-                        <div class="table-title">Productos Populares</div>
-                    </div>
-                    <div class="empty-state">
-                        <div class="empty-icon">⭐</div>
-                        <div>No hay datos de productos</div>
                     </div>
                 </div>
             </div>
@@ -759,6 +877,33 @@
         </div>
     </div>
 
+    <!-- Modal para detalles de venta -->
+    <div id="saleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Detalles de la Venta</div>
+                <button class="close-btn" onclick="closeSaleModal()">&times;</button>
+            </div>
+            
+            <div class="modal-sale-info">
+                <div><strong>Venta ID:</strong> <span id="modal-sale-id"></span></div>
+                <div><strong>Cliente:</strong> <span id="modal-customer"></span></div>
+                <div><strong>Fecha:</strong> <span id="modal-date"></span></div>
+                <div><strong>Total:</strong> <span id="modal-total"></span></div>
+            </div>
+
+            <h4 style="margin-bottom: 1rem;">Productos Vendidos:</h4>
+            <ul class="products-list" id="modal-products-list">
+                <li class="product-item">
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <div class="loading"></div>
+                        <div style="margin-top: 1rem;">Cargando productos...</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
     <script>
         // Configuración de la base de datos (Neon PostgreSQL)
         const DB_CONFIG = {
@@ -878,7 +1023,13 @@
                 'period-income': formatCurrency(data.periodIncome || 0),
                 'weekly-sales': formatCurrency(data.weeklySales || 0),
                 'monthly-sales': formatCurrency(data.monthlySales || 0),
-                'cash-balance': formatCurrency(data.cashBalance || 0),
+                'total-sales-count': (data.totalSales || 0).toString(),
+                'avg-sale': formatCurrency(data.avgSale || 0),
+                'inventory-value': formatCurrency(data.inventoryValue || 0),
+                'total-customers': (data.totalCustomers || 0).toString(),
+                'low-stock-count': (data.lowStockCount || 0).toString(),
+                'period-sales-count': (data.totalSales || 0).toString()
+            };monthlySales || 0),
                 'total-sales-count': (data.totalSales || 0).toString(),
                 'avg-sale': formatCurrency(data.avgSale || 0),
                 'inventory-value': formatCurrency(data.inventoryValue || 0),
@@ -886,6 +1037,18 @@
                 'low-stock-count': (data.lowStockCount || 0).toString(),
                 'period-sales-count': (data.totalSales || 0).toString()
             };
+
+            // Calcular y mostrar ganancia (ingresos - costos estimados)
+            const estimatedCosts = (data.periodIncome || 0) * 0.6; // Estimado 60% costos
+            const estimatedProfit = (data.periodIncome || 0) - estimatedCosts;
+            const profitMargin = data.periodIncome > 0 ? (estimatedProfit / data.periodIncome * 100) : 0;
+            
+            elements['period-profit'] = formatCurrency(estimatedProfit);
+            elements['period-profit-margin'] = profitMargin.toFixed(1);
+
+            // Actualizar crecimiento semanal
+            const weeklyGrowth = data.weeklyGrowth || 0;
+            elements['weekly-growth'] = Math.abs(parseFloat(weeklyGrowth)).toFixed(1);
 
             // Actualizar cada elemento si existe en el DOM
             Object.entries(elements).forEach(([id, value]) => {
@@ -897,12 +1060,207 @@
                 }
             });
 
-            // Actualizar crecimiento semanal si existe
-            const weeklyGrowthElement = document.querySelector('.stat-change.positive, .stat-change.negative');
-            if (weeklyGrowthElement && data.weeklyGrowth !== undefined) {
-                const growthValue = parseFloat(data.weeklyGrowth);
-                weeklyGrowthElement.textContent = `📈 ${Math.abs(growthValue).toFixed(1)}% ${growthValue >= 0 ? 'crecimiento' : 'disminución'} vs semana anterior`;
-                weeklyGrowthElement.className = growthValue >= 0 ? 'stat-change positive' : 'stat-change negative';
+            // Obtener datos adicionales para charts si es necesario
+            loadDashboardCharts(data);
+        }
+
+        // Cargar datos para los charts del dashboard
+        async function loadDashboardCharts(dashboardData) {
+            try {
+                // Obtener datos de reportes para los charts
+                const reportsData = await posAPI.getReportsData('month');
+                
+                if (reportsData && reportsData.sales_by_weekday) {
+                    const weekday = reportsData.sales_by_weekday;
+                    
+                    // Actualizar ventas por día
+                    document.getElementById('sunday-sales').textContent = weekday.sunday || 0;
+                    document.getElementById('monday-sales').textContent = weekday.monday || 0;
+                    document.getElementById('tuesday-sales').textContent = weekday.tuesday || 0;
+                    document.getElementById('wednesday-sales').textContent = weekday.wednesday || 0;
+                    document.getElementById('thursday-sales').textContent = weekday.thursday || 0;
+                    document.getElementById('friday-sales').textContent = weekday.friday || 0;
+                    document.getElementById('saturday-sales').textContent = weekday.saturday || 0;
+                }
+
+                // Actualizar productos populares
+                if (reportsData && reportsData.top_products) {
+                    updatePopularProductsList(reportsData.top_products.slice(0, 5)); // Top 5
+                }
+            } catch (error) {
+                console.error('Error loading dashboard charts:', error);
+            }
+        }
+
+        // Actualizar lista de productos populares
+        function updatePopularProductsList(products) {
+            const productsList = document.getElementById('popular-products-list');
+            
+            if (products.length === 0) {
+                productsList.innerHTML = `
+                    <li style="text-align: center; padding: 2rem; color: #666;">
+                        No hay productos para mostrar
+                    </li>
+                `;
+                return;
+            }
+
+            productsList.innerHTML = products.map((product, index) => `
+                <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f0f0f0;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="background: var(--primary-color); color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600;">
+                            ${index + 1}
+                        </span>
+                        <div>
+                            <div style="font-weight: 600; font-size: 0.85rem;">${product.name}</div>
+                            <div style="font-size: 0.7rem; color: #666;">${parseFloat(product.total_sold).toFixed(1)} vendidos</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; color: var(--success-color); font-size: 0.8rem;">
+                            ${formatCurrency(product.total_revenue)}
+                        </div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // Mostrar modal con detalles de venta
+        async function showSaleDetails(saleId, customerName, date, total) {
+            document.getElementById('modal-sale-id').textContent = `#${saleId}`;
+            document.getElementById('modal-customer').textContent = customerName;
+            document.getElementById('modal-date').textContent = date;
+            document.getElementById('modal-total').textContent = formatCurrency(total);
+            
+            // Mostrar modal
+            document.getElementById('saleModal').style.display = 'block';
+            
+            // Cargar productos de la venta
+            await loadSaleProducts(saleId);
+        }
+
+        // Cargar productos de una venta específica
+        async function loadSaleProducts(saleId) {
+            const productsList = document.getElementById('modal-products-list');
+            
+            try {
+                // Aquí harías una llamada a la API para obtener los productos
+                // Por ahora simularemos la carga
+                productsList.innerHTML = `
+                    <li class="product-item">
+                        <div style="text-align: center; padding: 2rem; color: #666;">
+                            <div class="loading"></div>
+                            <div style="margin-top: 1rem;">Cargando productos...</div>
+                        </div>
+                    </li>
+                `;
+
+                // Simular delay de API
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                // Obtener detalles de venta (usaremos la API existente por ahora)
+                const response = await fetch(`/api/sales-history?period=all&limit=100`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const sale = result.data.sales.find(s => s.id === saleId);
+                    if (sale && sale.items_preview) {
+                        // Parsear los productos del preview
+                        const products = parseSaleItems(sale.items_preview);
+                        displaySaleProducts(products);
+                    } else {
+                        productsList.innerHTML = `
+                            <li class="product-item">
+                                <div style="text-align: center; padding: 1rem; color: #666;">
+                                    No se pudieron cargar los productos
+                                </div>
+                            </li>
+                        `;
+                    }
+                } else {
+                    throw new Error('Error al cargar datos de venta');
+                }
+                
+            } catch (error) {
+                console.error('Error loading sale products:', error);
+                productsList.innerHTML = `
+                    <li class="product-item">
+                        <div style="text-align: center; padding: 1rem; color: #ef4444;">
+                            Error al cargar los productos
+                        </div>
+                    </li>
+                `;
+            }
+        }
+
+        // Parsear items de venta desde el preview
+        function parseSaleItems(itemsPreview) {
+            if (!itemsPreview) return [];
+            
+            // Dividir por comas y procesar cada item
+            return itemsPreview.split(', ').map(item => {
+                // Formato esperado: "4.50 × Azúcar Libra (RD$15.00)"
+                const match = item.match(/^([\d.]+)\s*×\s*(.+?)\s*\(RD\$([\d.]+)\)$/);
+                if (match) {
+                    const [, quantity, name, price] = match;
+                    return {
+                        name: name.trim(),
+                        quantity: parseFloat(quantity),
+                        unit_price: parseFloat(price),
+                        subtotal: parseFloat(quantity) * parseFloat(price)
+                    };
+                } else {
+                    // Fallback para formato simple
+                    return {
+                        name: item,
+                        quantity: 1,
+                        unit_price: 0,
+                        subtotal: 0
+                    };
+                }
+            });
+        }
+
+        // Mostrar productos en el modal
+        function displaySaleProducts(products) {
+            const productsList = document.getElementById('modal-products-list');
+            
+            if (products.length === 0) {
+                productsList.innerHTML = `
+                    <li class="product-item">
+                        <div style="text-align: center; padding: 1rem; color: #666;">
+                            No hay productos para mostrar
+                        </div>
+                    </li>
+                `;
+                return;
+            }
+
+            productsList.innerHTML = products.map(product => `
+                <li class="product-item">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-details">
+                            Cantidad: ${product.quantity.toFixed(2)} × ${formatCurrency(product.unit_price)}
+                        </div>
+                    </div>
+                    <div class="product-total">
+                        ${formatCurrency(product.subtotal)}
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // Cerrar modal
+        function closeSaleModal() {
+            document.getElementById('saleModal').style.display = 'none';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('saleModal');
+            if (event.target === modal) {
+                closeSaleModal();
             }
         }
 
@@ -922,15 +1280,6 @@
             }
 
             tbody.innerHTML = sales.map(sale => {
-                // Formatear productos vendidos
-                const productsDisplay = sale.items_preview 
-                    ? `<div style="max-width: 200px; font-size: 0.85em;">
-                         <strong>${sale.items_count} items:</strong><br>
-                         ${sale.items_preview}
-                         ${sale.items_count > 3 ? '<br><em>+ más productos...</em>' : ''}
-                       </div>`
-                    : `<span style="color: #666;">${sale.items_count || 0} items</span>`;
-
                 return `
                     <tr>
                         <td>#${sale.id}</td>
@@ -943,7 +1292,11 @@
                                 ${sale.customer?.phone ? `<br><small style="color: #666;">${sale.customer.phone}</small>` : ''}
                             </div>
                         </td>
-                        <td>${productsDisplay}</td>
+                        <td>
+                            <button class="view-btn" onclick="showSaleDetails(${sale.id}, '${sale.customer?.name || 'Cliente General'}', '${formatDate(sale.date)}', ${sale.total})">
+                                Ver (${sale.items_count || 0})
+                            </button>
+                        </td>
                         <td>${formatCurrency(sale.subtotal)}</td>
                         <td>${formatCurrency(sale.tax)}</td>
                         <td><strong>${formatCurrency(sale.total)}</strong></td>
@@ -1059,7 +1412,7 @@
                             <strong>${product.name}</strong><br>
                             <small style="color: #666;">RD${parseFloat(product.price).toFixed(2)}</small>
                         </td>
-                        <td>${parseFloat(product.total_sold).toFixed(1)}</td>
+                        <td>${parseFloat(product.total_sold).toFixed(2)}</td>
                         <td>${formatCurrency(product.total_revenue)}</td>
                         <td style="color: ${product.total_profit >= 0 ? '#10b981' : '#ef4444'};">
                             ${formatCurrency(product.total_profit)}
