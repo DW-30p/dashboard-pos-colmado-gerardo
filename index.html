@@ -905,35 +905,25 @@
     </div>
 
     <script>
-        // Configuración de la base de datos (Neon PostgreSQL)
-        const DB_CONFIG = {
-            // Aquí deberás agregar tu string de conexión de Neon
-            connectionString: 'postgresql://username:password@ep-xxx.us-east-1.postgres.vercel-storage.com/dbname',
-            // Para desarrollo local o con API
-            apiEndpoint: '/api' // Endpoint para tu API
-        };
-
+        // ==========================================
+        // VARIABLES GLOBALES Y CONFIGURACIÓN
+        // ==========================================
+        
         // Estado global de la aplicación
         let appState = {
             currentPeriod: 'month',
             salesData: [],
             productsData: [],
             customersData: [],
-            dashboardStats: {
-                periodIncome: 0,
-                weeklySales: 0,
-                monthlySales: 0,
-                cashBalance: 0,
-                totalSales: 0,
-                avgSale: 0,
-                inventoryValue: 0,
-                totalCustomers: 0,
-                lowStockCount: 0
-            }
+            dashboardStats: {}
         };
 
-        // Funciones de navegación
-        function showContent(contentId) {
+        // ==========================================
+        // FUNCIONES GLOBALES (ACCESIBLES DESDE HTML)
+        // ==========================================
+        
+        // Funciones que se llaman desde el HTML deben estar en el scope global
+        window.showContent = function(contentId) {
             // Ocultar todo el contenido
             document.querySelectorAll('.content').forEach(content => {
                 content.classList.remove('active');
@@ -952,7 +942,59 @@
             
             // Cargar datos específicos según la sección
             loadSectionData(contentId);
-        }
+        };
+
+        window.showSaleDetails = async function(saleId, customerName, date, total) {
+            document.getElementById('modal-sale-id').textContent = `#${saleId}`;
+            document.getElementById('modal-customer').textContent = customerName;
+            document.getElementById('modal-date').textContent = date;
+            document.getElementById('modal-total').textContent = formatCurrency(total);
+            
+            // Mostrar modal
+            document.getElementById('saleModal').style.display = 'block';
+            
+            // Cargar productos de la venta
+            await loadSaleProducts(saleId);
+        };
+
+        window.closeSaleModal = function() {
+            document.getElementById('saleModal').style.display = 'none';
+        };
+
+        window.loadDashboardData = async function() {
+            try {
+                console.log('=== LOADING DASHBOARD DATA ===');
+                showLoading('dashboard');
+                const stats = await posAPI.getDashboardStats();
+                
+                console.log('Stats received:', stats);
+                
+                if (stats) {
+                    console.log('Calling updateDashboardStats with:', stats);
+                    updateDashboardStats(stats);
+                    console.log('Dashboard stats updated successfully');
+                } else {
+                    console.error('No stats returned from API');
+                }
+                
+                hideLoading('dashboard');
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                hideLoading('dashboard');
+            }
+        };
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('saleModal');
+            if (event.target === modal) {
+                closeSaleModal();
+            }
+        };
+
+        // ==========================================
+        // API CLASS
+        // ==========================================
 
         // Cargar datos según la sección
         async function loadSectionData(section) {

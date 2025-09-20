@@ -64,35 +64,34 @@ export default async function handler(req, res) {
       WHERE ${whereClause}
     `;
 
-    // 2. COSTOS SEPARADOS (Consulta simplificada)
+    // 2. COSTOS SEPARADOS (Con unit_cost real)
     const costsQuery = `
       SELECT 
-        COALESCE(SUM(si.quantity * COALESCE(p.cost, 0)), 0) as total_costs
+        COALESCE(SUM(si.quantity * si.unit_cost), 0) as total_costs
       FROM sale_items si
-      JOIN products p ON si.product_id = p.id
       JOIN sales s ON si.sale_id = s.id
       WHERE s.${whereClause}
     `;
 
-    // 3. PRODUCTOS POPULARES (Sin ROUND problemático)
+    // 3. PRODUCTOS POPULARES (Con costos reales de sale_items)
     const topProductsQuery = `
       SELECT 
         p.id,
         p.name,
         p.price,
-        COALESCE(p.cost, 0) as cost,
         COALESCE(SUM(si.quantity), 0) as total_sold,
         COUNT(DISTINCT si.sale_id) as times_sold,
         COALESCE(SUM(si.subtotal), 0) as total_revenue,
-        COALESCE(SUM(si.quantity * COALESCE(p.cost, 0)), 0) as total_cost,
-        COALESCE(SUM(si.subtotal) - SUM(si.quantity * COALESCE(p.cost, 0)), 0) as total_profit,
+        COALESCE(SUM(si.quantity * si.unit_cost), 0) as total_cost,
+        COALESCE(SUM(si.subtotal) - SUM(si.quantity * si.unit_cost), 0) as total_profit,
         COALESCE(AVG(si.unit_price), 0) as avg_selling_price,
+        COALESCE(AVG(si.unit_cost), 0) as avg_cost,
         COALESCE(p.stock, 0) as current_stock
       FROM sale_items si
       JOIN products p ON si.product_id = p.id
       JOIN sales s ON si.sale_id = s.id
       WHERE s.${whereClause}
-      GROUP BY p.id, p.name, p.price, p.cost, p.stock
+      GROUP BY p.id, p.name, p.price, p.stock
       ORDER BY total_sold DESC
       LIMIT 20
     `;
